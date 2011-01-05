@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "histDisplayLib", "histDisplayLib.vcproj", "{8476686F-2171-4A0F-A5C9-A04E5D047745}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "histDisplayLib", "histLib.vcproj", "{8476686F-2171-4A0F-A5C9-A04E5D047745}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

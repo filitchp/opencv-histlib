@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="histDisplayLib"
+	Name="histLib"
 	ProjectGUID="{8476686F-2171-4A0F-A5C9-A04E5D047745}"
 	RootNamespace="OpenSURF2"
 	TargetFrameworkVersion="196613"
