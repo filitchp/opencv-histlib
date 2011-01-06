@@ -15,3 +15,4 @@ WINDOWS:
 On Windows the project expects that you have the environment variable OPENCVDIR defined.  
 This is the top level OpenCV directory (e.g. C:/OpenCV2.2/).  
 In addition the PATH environment variable must include the directory of the debug and release libraries.  
+(e.g. C:\OpenCV2.2\vs2008\bin\Release;C:\OpenCV2.2\vs2008\bin\Debug)
