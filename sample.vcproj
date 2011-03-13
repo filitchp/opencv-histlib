@@ -2,8 +2,8 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="HistLib"
-	ProjectGUID="{8476686F-2171-4A0F-A5C9-A04E5D047745}"
+	Name="Sample"
+	ProjectGUID="{C70C6E6C-5BD0-4625-9F08-BEB04FC93252}"
 	RootNamespace="OpenSURF2"
 	TargetFrameworkVersion="196613"
 	>
@@ -17,9 +17,9 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(ProjectDir)\build\vs2008\$(ConfigurationName)"
-			IntermediateDirectory="$(ProjectDir)\build\vs2008\$(ConfigurationName)\bin"
-			ConfigurationType="4"
+			OutputDirectory="$(ProjectDir)\build\$(ConfigurationName)"
+			IntermediateDirectory="$(ProjectDir)\build\$(ConfigurationName)\bin"
+			ConfigurationType="1"
 			CharacterSet="2"
 			>
 			<Tool
@@ -61,10 +61,15 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
+				Name="VCLinkerTool"
+				AdditionalDependencies="opencv_core220d.lib opencv_imgproc220d.lib opencv_highgui220d.lib opencv_ml220d.lib"
+				AdditionalLibraryDirectories="$(OPENCVDIR)\vs2008\lib\Debug"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -76,6 +81,9 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
@@ -83,7 +91,7 @@
 			Name="Release|Win32"
 			OutputDirectory="$(ProjectDir)\build\vs2008\$(ConfigurationName)"
 			IntermediateDirectory="$(ProjectDir)\build\vs2008\$(ConfigurationName)\bin"
-			ConfigurationType="4"
+			ConfigurationType="1"
 			CharacterSet="2"
 			WholeProgramOptimization="1"
 			>
@@ -122,10 +130,19 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
+				Name="VCLinkerTool"
+				AdditionalDependencies="opencv_core220.lib opencv_imgproc220.lib opencv_highgui220.lib"
+				AdditionalLibraryDirectories="&quot;$(OPENCVDIR)\vs2008\lib\Release&quot;"
+				GenerateDebugInformation="true"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -135,6 +152,9 @@
 			/>
 			<Tool
 				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -150,17 +170,7 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\src\histLib.cpp"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl;inc;xsd"
-			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
-			>
-			<File
-				RelativePath=".\include\histLib.h"
+				RelativePath=".\src\main.cpp"
 				>
 			</File>
 		</Filter>
