@@ -257,6 +257,24 @@ int main(void)
     cvReleaseImage(&ImgLowContrastBGRNorm);
   }
 
+    //================================= Photo BGR histogram =======================================
+  // Open the image
+  Mat PhotoBGR = imread("images/sunset.jpg");
+
+  // Generate color histogram for the current image
+  Mat HistPhotoBGR = Mat(2*HIST_EDGE + HIST_HEIGHT, 2*HIST_EDGE + 3*HIST_BINS, CV_8UC3, Scalar(0));
+
+  // Draw the histogram background and labels
+  DrawHistBar(HistPhotoBGR);
+
+  // Draw the histogram levels
+  DrawHistogramBGR(PhotoBGR, HistPhotoBGR);
+
+  // Save the histogram image
+  if (imwrite("images/sunset.hist.png", HistPhotoBGR))
+  {
+    cout << "Photo BGR histogram... saved sunset.hist.png\n";
+  }
 
   // Leave the prompt up so user can view messages (for Windows)
   cout << "Enter some text to exit\n";
