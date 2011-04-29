@@ -116,7 +116,7 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="&quot;$(OPENCVDIR)\include&quot;;&quot;$(OPENCVDIR)\include\opencv&quot;;include"
-				RuntimeLibrary="0"
+				RuntimeLibrary="3"
 				EnableFunctionLevelLinking="true"
 				WarningLevel="3"
 				DebugInformationFormat="3"
@@ -132,7 +132,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="opencv_core220.lib opencv_imgproc220.lib opencv_highgui220.lib"
+				AdditionalDependencies="opencv_core220.lib opencv_imgproc220.lib opencv_highgui220.lib opencv_ml220.lib"
 				OutputFile="$(OutDir)\$(ProjectName)$(ConfigurationName).exe"
 				AdditionalLibraryDirectories="&quot;$(OPENCVDIR)\vs2008\lib\Release&quot;"
 				GenerateDebugInformation="true"

@@ -227,7 +227,7 @@ void DrawHistogram(Mat& Hist, Mat& HistImage, Scalar Color,
       {
         for (int i= 0; i < Hist.cols; i++)
         {
-          DrawHistBin(HistLayer, Hist.at<double>(0,i),
+          DrawHistBin(HistLayer, Hist.at<int>(0,i),
             i*3, Color, histBins, histEdge, histHeight);
         }
       }
@@ -548,11 +548,13 @@ void DrawHistBar(Mat& HistImage, unsigned histBins, unsigned histEdge, unsigned 
   histBinsSS << (histBins-1);
 
   // Label last bin
+  /*
   putText(
     HistImage,
     histBinsSS.str().c_str(),
     Point(histEdge + 3*histBins - 10, histEdge + histHeight + 10),
     FONT_HERSHEY_SIMPLEX, 0.3f, WHITE_N);
+    */
 }
 
 //=================================================================================================
@@ -590,6 +592,95 @@ void NormalizeClipImageBGR(const IplImage *ImageBGR, IplImage *ImageBGRNorm, dou
   cvReleaseImage(&ImageHue);
   cvReleaseImage(&ImageSat);
   cvReleaseImage(&ImageVal);
+}
+
+//=================================================================================================
+//=================================================================================================
+void NormalizeClipImageBGR(const Mat& ImageBGR, Mat& ImageBGRNorm, double clipPercent)
+{
+
+  Mat ImageHSV     = Mat(ImageBGR.size(), CV_8UC3);
+  Mat ImageHSVNorm = Mat(ImageBGR.size(), CV_8UC3);
+
+  cvtColor(ImageBGR, ImageHSV, CV_BGR2HSV);
+
+  unsigned char* data     = ImageHSV.data;
+  unsigned char* dataNorm = ImageHSVNorm.data;
+
+  unsigned bins[HIST_BINS];
+  memset(bins, 0, HIST_BINS*sizeof(unsigned));
+  unsigned max = HIST_BINS-1;
+  unsigned min = 0;
+
+  for ( int i = 0; i < ImageHSV.rows*ImageHSV.cols; i++)
+  {
+    bins[data[3*i+2]]++;
+  }
+
+  // Maximum number of pixels to remove from the histogram
+  // This is calculated by taking a percentage of the total number of pixels
+  const double clipFraction = clipPercent/100.0f;
+  unsigned pixelsToClip = cvRound(clipFraction*(double)(ImageHSV.rows*ImageHSV.cols));
+  unsigned pixelsToClipHalf = cvRound((double)pixelsToClip/2);
+  unsigned binSum = 0;
+
+  // Find the lower pixel bound
+  if (bins[0] < pixelsToClipHalf)
+  {
+    binSum = bins[0];
+    for (unsigned i = 1; i < 255; i++)
+    {
+      binSum = binSum + bins[i];
+      if (binSum > pixelsToClipHalf)
+      {
+        min = i;
+        break;
+      }
+    }
+  }
+
+  // Find the upper pixel bound
+  if (bins[255] < pixelsToClipHalf)
+  {
+    binSum = bins[255];
+    for (unsigned i = 255; i > 1; i--)
+    {
+      binSum = binSum + bins[i];
+      if (binSum > pixelsToClipHalf)
+      {
+        max = i;
+        break;
+      }
+    }
+  }
+
+  for ( int i = 0; i < ImageHSV.rows*ImageHSV.cols; i++)
+  {
+    dataNorm[3*i]   = data[3*i];// Hue
+    dataNorm[3*i+1] = data[3*i+1];//Saturation
+
+     // Value
+    double newPixelDouble =
+      (double)((double)data[3*i+2]-(double)min)*(255.0f/(double)(max-min));
+
+    unsigned char newPixelByte;
+
+    if (newPixelDouble > 255) // Take care of positive clipping
+    {
+      newPixelByte = 255;
+    }
+    else if(newPixelDouble < 0) // Take care of negative clipping
+    {
+      newPixelByte = 0;
+    }
+    else // If there is no clipping
+    {
+      newPixelByte = cvRound(newPixelDouble);
+    }
+
+    dataNorm[3*i+2] = newPixelByte;
+  }
+  cvtColor(ImageHSVNorm, ImageBGRNorm, CV_HSV2BGR);
 }
 
 //=================================================================================================
@@ -654,9 +745,28 @@ void NormalizeImageBGR(const Mat& ImageBGR, Mat& ImageBGRNorm)
   {
     dataNorm[3*i]   = data[3*i];// Hue
     dataNorm[3*i+1] = data[3*i+1];//Saturation
+
+    double newPixelDouble =
+      (double)((double)data[3*i+2]-(double)min)*(255.0f/(double)(max-min));
+
+    unsigned char newPixelByte;
+
+    if (newPixelDouble > 255) // Take care of positive clipping
+    {
+      newPixelByte = 255;
+    }
+    else if(newPixelDouble < 0) // Take care of negative clipping
+    {
+      newPixelByte = 0;
+    }
+    else // If there is no clipping
+    {
+      newPixelByte = cvRound(newPixelDouble);
+    }
+
      // Value
-    dataNorm[3*i+2] =
-      (unsigned char)cvRound(((double)data[3*i+2]-(double)min)*(255.0f/(double)(max-min)));
+    dataNorm[3*i+2] = newPixelByte;
+
   }
   cvtColor(ImageHSVNorm, ImageBGRNorm, CV_HSV2BGR);
 }
