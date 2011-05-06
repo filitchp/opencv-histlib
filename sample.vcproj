@@ -48,8 +48,8 @@
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
 				PrecompiledHeaderThrough=""
-				WarningLevel="3"
-				DebugInformationFormat="4"
+				WarningLevel="4"
+				DebugInformationFormat="3"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -64,7 +64,8 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="opencv_core220d.lib opencv_imgproc220d.lib opencv_highgui220d.lib opencv_ml220d.lib"
 				OutputFile="$(OutDir)\$(ProjectName)$(ConfigurationName).exe"
-				AdditionalLibraryDirectories="$(OPENCVDIR)\vs2008\lib\Debug"
+				AdditionalLibraryDirectories="$(OPENCVDIR)\lib"
+				GenerateDebugInformation="true"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -136,7 +137,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="opencv_core220.lib opencv_imgproc220.lib opencv_highgui220.lib opencv_ml220.lib"
 				OutputFile="$(OutDir)\$(ProjectName)$(ConfigurationName).exe"
-				AdditionalLibraryDirectories="&quot;$(OPENCVDIR)\vs2008\lib\Release&quot;"
+				AdditionalLibraryDirectories="&quot;$(OPENCVDIR)\lib\Release&quot;"
 				GenerateDebugInformation="true"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
