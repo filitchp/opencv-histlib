@@ -1,5 +1,5 @@
 //=================================================================================================
-// Copyright (c) 2011, Paul Filitchkin
+// Copyright (c) 2012, Paul Filitchkin
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without modification, are permitted
@@ -58,7 +58,7 @@ int main(void)
   {
     cout << "Manually draw histogram (C++ style)... saved testRampA.hist.png\n";
   }
-
+#if 0
   // =============================Manually draw histogram (C style)================================
   CvSize HistSize = cvSize(2*HIST_EDGE + 3*HIST_BINS, 2*HIST_EDGE + HIST_HEIGHT);
   IplImage *HistMImg = cvCreateImage(HistSize , IPL_DEPTH_8U, 3);
@@ -280,5 +280,6 @@ int main(void)
   cout << "Enter some text to exit\n";
   int someInput;
   cin >> someInput;
+#endif
   return 0;
 }
