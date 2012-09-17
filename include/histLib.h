@@ -1,5 +1,5 @@
 //=================================================================================================
-// Copyright (c) 2011, Paul Filitchkin
+// Copyright (c) 2012, Paul Filitchkin
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without modification, are permitted
@@ -27,94 +27,86 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //=================================================================================================
 
-#ifndef _HIST_LIB
-#define _HIST_LIB
+#ifndef HIST_LIB
+#define HIST_LIB
 
-#include <cv.h>
+#define HIST_LIB_COLOR_WHITE  cv::Scalar(0xff, 0xff, 0xff)
+#define HIST_LIB_COLOR_BLACK  cv::Scalar(0x00, 0x00, 0x00)
+#define HIST_LIB_COLOR_BLUE   cv::Scalar(0xff, 0x00, 0x00)
+#define HIST_LIB_COLOR_GREEN  cv::Scalar(0x00, 0xff, 0x00)
+#define HIST_LIB_COLOR_RED    cv::Scalar(0x00, 0x00, 0xff)
 
-// Default input values
-#define HIST_HEIGHT 300 // Height of histogram image
-#define HIST_BINS 256 // Number of bins in histogram
-#define HIST_EDGE 15 // Border
-#define HIST_ROWS 2*HIST_EDGE + HIST_HEIGHT
-#define HIST_COLS 2*HIST_EDGE + 3*HIST_BINS
+#include <opencv2/core/core.hpp>
 
-// Colors
-#define RED   cvScalar(0x00, 0x00, 0xff, 0)
-#define GREEN cvScalar(0x00, 0xff, 0x00, 0)
-#define BLUE  cvScalar(0xff, 0x00, 0x00, 0)
-#define WHITE cvScalar(0xff, 0xff, 0xff, 0)
-#define RED_N   cv::Scalar(0x00, 0x00, 0xff, 0)
-#define GREEN_N cv::Scalar(0x00, 0xff, 0x00, 0)
-#define BLUE_N  cv::Scalar(0xff, 0x00, 0x00, 0)
-#define WHITE_N cv::Scalar(0xff, 0xff, 0xff, 0)
+class CHistLib
+{
 
-// Histogram functions
-void DrawHistogramBGR(const IplImage* ImageBGR, IplImage* ImageHist);
-void DrawHistogramBGR(const cv::Mat& ImageBGR, cv::Mat& ImageHist);
+  public:
+    CHistLib();
+    ~CHistLib();
 
-void DrawHistogramGray(const IplImage* ImageBGR, IplImage* ImageHist);
-void DrawHistogramGray(const cv::Mat& ImageBGR,  cv::Mat& ImageHist);
+    // Setters
+    void SetHistImageHeight(unsigned HistImageHeight);
+    void SetBinCount(unsigned BinCount);
+    void SetPlotColor(cv::Scalar Color);
+    void SetAxisColor(cv::Scalar Color);
+    void SetBackgroundColor(cv::Scalar Color);
 
-void DrawHistogram(CvHistogram* Hist,
-                   unsigned HistSize,
-                   IplImage* HistImage,
-                   CvScalar Color      = WHITE,
-                   unsigned histBins   = HIST_BINS,
-                   unsigned histEdge   = HIST_EDGE,
-                   unsigned histHeight = HIST_HEIGHT);
+    // Getters
+    unsigned GetHistImageHeight() const;
+    unsigned GetBinCount() const;
+    cv::Scalar GetPlotColor() const;
+    cv::Scalar GetAxisColor() const;
+    cv::Scalar GetBackgroundColor() const;
 
-void DrawHistogram(CvMat* Hist,
-                   IplImage* HistImage,
-                   CvScalar Color      = WHITE,
-                   unsigned histBins   = HIST_BINS,
-                   unsigned histEdge   = HIST_EDGE,
-                   unsigned histHeight = HIST_HEIGHT);
+    // Histogram functions
+    void DrawHistogramBGR(const cv::Mat& ImageBGR, cv::Mat& ImageHist);
+    void DrawHistogramGray(const cv::Mat& ImageBGR, cv::Mat& ImageHist);
 
-void DrawHistogram(cv::Mat& Hist,
-                   cv::Mat& HistImage,
-                   cv::Scalar Color    = WHITE_N,
-                   unsigned histBins   = HIST_BINS,
-                   unsigned histEdge   = HIST_EDGE,
-                   unsigned histHeight = HIST_HEIGHT);
+    void DrawHistogram(
+      const cv::Mat& Hist,
+      cv::Mat& HistImage,
+      const cv::Scalar& Color = HIST_LIB_COLOR_WHITE);
 
-void DrawHistBar(IplImage* HistImage,
-                 unsigned histBins   = HIST_BINS,
-                 unsigned histEdge   = HIST_EDGE,
-                 unsigned histHeight = HIST_HEIGHT);
+    void DrawHistBar(cv::Mat& HistImage, unsigned BinCount);
 
-void DrawHistBar(cv::Mat& HistImage,
-                 unsigned histBins   = HIST_BINS,
-                 unsigned histEdge   = HIST_EDGE,
-                 unsigned histHeight = HIST_HEIGHT);
+    // Normalization functions
+    void NormalizeImageBGR(const cv::Mat& ImageBGR, cv::Mat& ImageBGRNorm);
 
-// Normalization functions
-void NormalizeImageBGR(const IplImage *ImageBGR, IplImage *ImageBGRNorm);
-void NormalizeImageBGR(const cv::Mat&  ImageBGR, cv::Mat&  ImageBGRNorm);
+    void NormalizeClipImageBGR(
+      const cv::Mat& ImageBGR,
+      cv::Mat& ImageBGRNorm,
+      double clipPercent = 2.0f);
 
-void NormalizeClipImageBGR(const IplImage *ImageBGR, IplImage *ImageBGRNorm, double clipPercent = 2.0f);
-void NormalizeClipImageBGR(const cv::Mat&  ImageBGR, cv::Mat&  ImageBGRNorm, double clipPercent = 2.0f);
+    void NormalizeClipImageGray(cv::Mat& Image, double clipPercent = 2.0f);
 
-void NormalizeClipImageGray(IplImage *Image, double clipPercent = 2.0f);
-void NormalizeClipImageGray(cv::Mat&  Image, double clipPercent = 2.0f);
+  private:
+    // Helper functions
+    void DrawHistBin(
+      cv::Mat& HistLayer,
+      int value,
+      unsigned x,
+      const cv::Scalar& Color = HIST_LIB_COLOR_WHITE);
 
-// Helper functions
-void DrawHistBin(cv::Mat& HistLayer, int value, unsigned x,
-             const cv::Scalar& Color = WHITE_N,
-             unsigned histBins       = HIST_BINS,
-             unsigned histEdge       = HIST_EDGE,
-             unsigned histHeight     = HIST_HEIGHT);
+    void DrawHistBin(
+      cv::Mat& HistLayer,
+      float value,
+      unsigned x,
+      const cv::Scalar& Color = HIST_LIB_COLOR_WHITE);
 
-void DrawHistBin(cv::Mat& HistLayer, float value, unsigned x,
-             const cv::Scalar& Color = WHITE_N,
-             unsigned histBins       = HIST_BINS,
-             unsigned histEdge       = HIST_EDGE,
-             unsigned histHeight     = HIST_HEIGHT);
+    void DrawHistBin(
+      cv::Mat& HistLayer,
+      double value,
+      unsigned x,
+      const cv::Scalar& Color = HIST_LIB_COLOR_WHITE);
 
-void DrawHistBin(cv::Mat& HistLayer, double value, unsigned x,
-             const cv::Scalar& Color = WHITE_N,
-             unsigned histBins       = HIST_BINS,
-             unsigned histEdge       = HIST_EDGE,
-             unsigned histHeight     = HIST_HEIGHT);
+    unsigned mHistImageHeight;
+    unsigned mHistImageBorder;
+    unsigned mBinCount;
+    bool mDrawXAxis;
+    cv::Scalar mHistPlotColor;
+    cv::Scalar mHistAxisColor;
+    cv::Scalar mHistBackgroundColor;
 
-#endif //end #ifndef _HIST_LIB
+};
+#endif //end #ifndef HIST_LIB

@@ -36,6 +36,31 @@ using namespace cv;
 
 int main(void)
 {
+  CHistLib Histogram;
+  Histogram.SetPlotColor(Scalar(0x00, 0x00, 0xff));
+  Histogram.SetAxisColor(Scalar(0x00, 0x00, 0x00));
+  Histogram.SetBackgroundColor(Scalar(0xff, 0xff, 0xff));
+
+  Histogram.SetHistImageHeight(100);
+
+  // Create a row vector for histogram values
+  Mat Hist = Mat(128, 1, CV_32S);
+
+  // The ith bin gets i
+  for (int i = 0; i < Hist.rows; i++)
+  {
+    Hist.at<int>(i,0) = i;
+  }
+
+  Mat HistImage;
+  Histogram.DrawHistogram(Hist, HistImage);
+
+  if (imwrite("images/testRampA.hist.png", HistImage))
+  {
+    cout << "Manually draw histogram (C++ style)... saved testRampA.hist.png\n";
+  }
+
+#if 0
   // ============================Manually draw histogram (C++ style)===============================
   Mat HistImage = Mat(2*HIST_EDGE + HIST_HEIGHT, 2*HIST_EDGE + 3*HIST_BINS, CV_8UC3, Scalar(0));
 
@@ -58,7 +83,7 @@ int main(void)
   {
     cout << "Manually draw histogram (C++ style)... saved testRampA.hist.png\n";
   }
-#if 0
+
   // =============================Manually draw histogram (C style)================================
   CvSize HistSize = cvSize(2*HIST_EDGE + 3*HIST_BINS, 2*HIST_EDGE + HIST_HEIGHT);
   IplImage *HistMImg = cvCreateImage(HistSize , IPL_DEPTH_8U, 3);
