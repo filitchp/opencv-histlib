@@ -43,7 +43,9 @@ CHistLib::CHistLib() :
   mHistPlotColor(HIST_LIB_COLOR_WHITE),
   mHistAxisColor(HIST_LIB_COLOR_WHITE),
   mHistBackgroundColor(HIST_LIB_COLOR_BLACK),
-  mDrawXAxis(true)
+  mDrawXAxis(true),
+  mSpread(1),
+  mDrawSpreadOut(false)
 {
 }
 
@@ -96,6 +98,21 @@ void CHistLib::SetBackgroundColor(cv::Scalar Color)
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
+void CHistLib::SetDrawSpreadOut(bool DrawSpreadOut)
+{
+  mDrawSpreadOut = DrawSpreadOut;
+  if (mDrawSpreadOut)
+  {
+    mSpread = 3;
+  }
+  else
+  {
+    mSpread = 1;
+  }
+}
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 unsigned CHistLib::GetHistImageHeight() const
 {
   return mHistImageHeight;
@@ -107,6 +124,7 @@ unsigned CHistLib::GetBinCount() const
 {
   return mBinCount;
 }
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 cv::Scalar CHistLib::GetPlotColor() const
@@ -129,9 +147,13 @@ cv::Scalar CHistLib::GetBackgroundColor() const
 }
 
 //-----------------------------------------------------------------------------
-// Description:
-//   Overloaded function using C++ libraries/conventions. Here Hist can be
-//   either a row or column vector.
+//-----------------------------------------------------------------------------
+bool CHistLib::GetDrawSpreadOut() const
+{
+  return mDrawSpreadOut;
+}
+
+//-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 void CHistLib::DrawHistogram(
   const Mat& Hist,
@@ -139,7 +161,6 @@ void CHistLib::DrawHistogram(
   const cv::Scalar& Color)
 {
 
-  bool rowVector;
   unsigned HistLength;
 
   // Make sure we have a row or column vector
@@ -149,7 +170,6 @@ void CHistLib::DrawHistogram(
     {
       return;
     }
-    rowVector = false;
     HistLength = Hist.rows;
   }
   else
@@ -158,18 +178,32 @@ void CHistLib::DrawHistogram(
     {
       return;
     }
-    rowVector = true;
     HistLength = Hist.cols;
   }
 
   // Should do nothing if the input is already the correct size/type
   HistImage.create(
     2 * mHistImageBorder + mHistImageHeight,
-    2 * mHistImageBorder + 3 * HistLength,
+    2 * mHistImageBorder + mSpread * HistLength,
     CV_8UC3);
 
   HistImage.setTo(mHistBackgroundColor);
 
+  DrawHistBins(Hist, HistImage, mHistPlotColor);
+
+  if (mDrawXAxis)
+  {
+    DrawHistBar(HistImage, HistLength);
+  }
+}
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+void CHistLib::DrawHistBins(
+  const Mat& Hist,
+  Mat& HistImage,
+  const cv::Scalar& Color)
+{
   // Draw the bins
   unsigned binValue = 0;
 
@@ -177,65 +211,60 @@ void CHistLib::DrawHistogram(
   {
     // When Hist contains floats
     case CV_32F:
-      if (rowVector)
+      if (Hist.cols > Hist.rows)
       {
-        for (int i = 0; i < Hist.cols; i++)
+        for (int i = 0; i < Hist.cols; ++i)
         {
-          DrawHistBin(HistImage, Hist.at<float>(0, i), i * 3, mHistPlotColor);
+          DrawHistBin(HistImage, Hist.at<float>(0, i), i * mSpread, Color);
         }
       }
       else
       {
-        for (int i = 0; i < Hist.rows; i++)
+        for (int i = 0; i < Hist.rows; ++i)
         {
-          DrawHistBin(HistImage, Hist.at<float>(i, 0), i * 3, mHistPlotColor);
+          DrawHistBin(HistImage, Hist.at<float>(i, 0), i * mSpread, Color);
         }
       }
     break;
 
     // When Hist contains doubles
     case CV_64F:
-      if (rowVector)
+      if (Hist.cols > Hist.rows)
       {
-        for (int i = 0; i < Hist.cols; i++)
+        for (int i = 0; i < Hist.cols; ++i)
         {
-          DrawHistBin(HistImage, Hist.at<double>(0, i), i * 3, mHistPlotColor);
+          DrawHistBin(HistImage, Hist.at<double>(0, i), i * mSpread, Color);
         }
       }
       else
       {
-        for (int i = 0; i < Hist.rows; i++)
+        for (int i = 0; i < Hist.rows; ++i)
         {
-          DrawHistBin(HistImage, Hist.at<double>(i, 0), i * 3, mHistPlotColor);
+          DrawHistBin(HistImage, Hist.at<double>(i, 0), i * mSpread, Color);
         }
       }
     break;
 
     // When Hist contains ints
     case CV_32S:
-      if (rowVector)
+      if (Hist.cols > Hist.rows)
       {
-        for (int i = 0; i < Hist.cols; i++)
+        for (int i = 0; i < Hist.cols; ++i)
         {
-          DrawHistBin(HistImage, Hist.at<int>(0, i), i * 3, mHistPlotColor);
+          DrawHistBin(HistImage, Hist.at<int>(0, i), i * mSpread, Color);
         }
       }
       else
       {
-        for (int i = 0; i < Hist.rows; i++)
+        for (int i = 0; i < Hist.rows; ++i)
         {
-          DrawHistBin(HistImage, Hist.at<int>(i, 0), i * 3, mHistPlotColor);
+          DrawHistBin(HistImage, Hist.at<int>(i, 0), i * mSpread, Color);
         }
       }
     break;
 
     default:
       return;
-  }
-
-  if (mDrawXAxis)
-  {
-    DrawHistBar(HistImage, HistLength);
   }
 }
 
@@ -316,8 +345,30 @@ void CHistLib::DrawHistBin(
 //   Additional info:
 //   http://opencv.willowgarage.com/documentation/cpp/imgproc_histograms.html
 //-----------------------------------------------------------------------------
-void CHistLib::DrawHistogramBGR(const Mat& ImageBGR, Mat& ImageHist)
+void CHistLib::DrawHistogramBGR(const Mat& Image, Mat& HistImage)
 {
+
+  const Mat* pImageBGR;
+  Mat ImageBGR;
+
+  switch (Image.type())
+  {
+    case CV_8UC3:
+      pImageBGR = &Image;
+    break;
+
+    case CV_8UC4:
+    {
+      cvtColor(Image, ImageBGR, CV_RGBA2RGB);
+      pImageBGR = &ImageBGR;
+    }
+    break;
+
+    default:
+      CV_Error(CV_StsUnsupportedFormat, "CHistLib::DrawHistogramGray");
+    break;
+  }
+
   // Initialize histogram settings
   int histSize[] = {mBinCount};
   float Range[] = {0, 256}; //{0, 256} = 0 to 255
@@ -330,20 +381,29 @@ void CHistLib::DrawHistogramBGR(const Mat& ImageBGR, Mat& ImageHist)
   MatND HistG;
   MatND HistR;
 
-  calcHist(&ImageBGR, 1, chanB, Mat(), // do not use mask
-           HistB, 1, histSize, Ranges,
-           true, // the histogram is uniform
-           false);
+  calcHist(pImageBGR, 1, chanB, Mat(), // do not use mask
+    HistB,
+    1,
+    histSize,
+    Ranges,
+    true, // the histogram is uniform
+    false);
 
-  calcHist(&ImageBGR, 1, chanG, Mat(), // do not use mask
-           HistG, 1, histSize, Ranges,
-           true, // the histogram is uniform
-           false);
+  calcHist(pImageBGR, 1, chanG, Mat(), // do not use mask
+    HistG,
+    1,
+    histSize,
+    Ranges,
+    true, // the histogram is uniform
+    false);
 
-  calcHist(&ImageBGR, 1, chanR, Mat(), // do not use mask
-           HistR, 1, histSize, Ranges,
-           true, // the histogram is uniform
-           false);
+  calcHist(pImageBGR, 1, chanR, Mat(), // do not use mask
+    HistR,
+    1,
+    histSize,
+    Ranges,
+    true, // the histogram is uniform
+    false);
 
   double maxB = 0;
   double maxG = 0;
@@ -355,48 +415,110 @@ void CHistLib::DrawHistogramBGR(const Mat& ImageBGR, Mat& ImageHist)
 
   double maxBGR = max(maxB, max(maxG, maxR));
 
-  for (int i = 0; i < HistB.rows; i++)
+  for (int i = 0; i < HistB.rows; ++i)
   {
     HistB.at<float>(i,0) = (float)mHistImageHeight*HistB.at<float>(i,0)/(float)maxBGR;
     HistG.at<float>(i,0) = (float)mHistImageHeight*HistG.at<float>(i,0)/(float)maxBGR;
     HistR.at<float>(i,0) = (float)mHistImageHeight*HistR.at<float>(i,0)/(float)maxBGR;
   }
 
-  DrawHistogram(HistB, ImageHist, HIST_LIB_COLOR_BLUE);
-  DrawHistogram(HistG, ImageHist, HIST_LIB_COLOR_GREEN);
-  DrawHistogram(HistR, ImageHist, HIST_LIB_COLOR_RED);
+  // Should do nothing if the input is already the correct size/type
+  HistImage.create(
+    2 * mHistImageBorder + mHistImageHeight,
+    2 * mHistImageBorder + mSpread * mBinCount,
+    CV_8UC3);
+
+  HistImage.setTo(mHistBackgroundColor);
+
+  DrawHistBins(HistB, HistImage, HIST_LIB_COLOR_BLACK);
+  DrawHistBins(HistG, HistImage, HIST_LIB_COLOR_BLACK);
+  DrawHistBins(HistR, HistImage, HIST_LIB_COLOR_BLACK);
+
+  Mat AddB(HistImage.size(), HistImage.type(), HIST_LIB_COLOR_BLACK);
+  Mat AddG(HistImage.size(), HistImage.type(), HIST_LIB_COLOR_BLACK);
+  Mat AddR(HistImage.size(), HistImage.type(), HIST_LIB_COLOR_BLACK);
+
+  DrawHistBins(HistB, AddB, HIST_LIB_COLOR_BLUE);
+  DrawHistBins(HistG, AddG, HIST_LIB_COLOR_GREEN);
+  DrawHistBins(HistR, AddR, HIST_LIB_COLOR_RED);
+
+  add(HistImage, AddB, HistImage);
+  add(HistImage, AddG, HistImage);
+  add(HistImage, AddR, HistImage);
+
+  if (mDrawXAxis)
+  {
+    DrawHistBar(HistImage, mBinCount);
+  }
 }
 
 //-----------------------------------------------------------------------------
 // Description:
 //   Overloaded function using the C++ formats/functions
 //-----------------------------------------------------------------------------
-void CHistLib::DrawHistogramGray(const Mat& ImageBGR, Mat& ImageHist)
+void CHistLib::DrawHistogramValue(const Mat& Image, Mat& ImageHist)
 {
-  // Create 1 channel image for grayscale representation
-  Mat ImageGray = Mat(ImageBGR.rows, ImageBGR.cols, CV_8UC1);
-  cvtColor(ImageBGR, ImageGray, CV_BGR2GRAY);
+  // Create 1 channel image to get a value representation
+  Mat ImageValue = Mat(Image.size(), CV_8UC1);
+
+  switch (Image.type())
+  {
+    case CV_8UC1:
+      Image.copyTo(ImageValue);
+    break;
+
+    case CV_8UC3:
+    {
+      Mat ImageHSV = Mat(Image.size(), CV_8UC3);
+      vector<Mat> ChannlesHsv;
+
+      cvtColor(Image, ImageHSV, CV_BGR2HSV);
+      cv::split(ImageHSV, ChannlesHsv);
+      ImageValue = ChannlesHsv[2];
+    }
+    break;
+
+    case CV_8UC4:
+    {
+      Mat ImageHSV = Mat(Image.size(), CV_8UC3);
+      Mat ImageBGR = Mat(Image.size(), CV_8UC3);
+      vector<Mat> ChannlesHsv;
+
+      cvtColor(Image, ImageBGR, CV_RGBA2RGB);
+      cvtColor(ImageBGR, ImageHSV, CV_RGBA2RGB);
+      cv::split(ImageHSV, ChannlesHsv);
+      ImageValue = ChannlesHsv[2];
+    }
+    break;
+
+    default:
+      CV_Error(CV_StsUnsupportedFormat, "CHistLib::DrawHistogramValue");
+    break;
+  }
 
   // Initialize histogram settings
-  int histSize[] = {mBinCount};
-  float Range[] = {0, 256}; //{0, 256} = 0 to 255
-  const float *Ranges[] = {Range};
-  int channels[] = {0};
+  int histSize[] = { mBinCount };
+  float Range[] = { 0, 256 }; //{0, 256} = 0 to 255
+  const float *Ranges[] = { Range };
+  int channels[] = { 0 };
 
   MatND Hist;
 
-  calcHist(&ImageGray, 1, channels, Mat(), // do not use mask
-           Hist, 1, histSize, Ranges,
-           true, // the histogram is uniform
-           false);
+  calcHist(&ImageValue, 1, channels, Mat(), // do not use mask
+    Hist,
+    1,
+    histSize,
+    Ranges,
+    true, // the histogram is uniform
+    false);
 
-  double maxVal=0;
+  double maxVal = 0;
   minMaxLoc(Hist, 0, &maxVal, 0, 0);
 
-  for (int i = 0; i < Hist.rows; i++)
+  for (int i = 0; i < Hist.rows; ++i)
   {
-    Hist.at<float>(i,0) =
-      (float)mHistImageHeight*Hist.at<float>(i,0)/(float)maxVal;
+    Hist.at<float>(i, 0) = (float) mHistImageHeight * Hist.at<float>(i, 0)
+        / (float) maxVal;
   }
 
   DrawHistogram(Hist, ImageHist);
@@ -410,27 +532,37 @@ void CHistLib::DrawHistBar(Mat& HistImage, unsigned BinCount)
 {
   // Draw the horizontal axis
   line(
-      HistImage,
-      Point(mHistImageBorder, mHistImageBorder + mHistImageHeight),
-      Point(mHistImageBorder + 3 * BinCount, mHistImageBorder + mHistImageHeight),
-      mHistAxisColor, 0);
+    HistImage,
+    Point(mHistImageBorder, mHistImageBorder + mHistImageHeight),
+    Point(
+      mHistImageBorder + mSpread * BinCount,
+      mHistImageBorder + mHistImageHeight),
+    mHistAxisColor,
+    0);
 
   // Label initial bin
-  putText(HistImage,
-          "0", Point(mHistImageBorder - 3,
-          mHistImageBorder + mHistImageHeight + 10),
-          FONT_HERSHEY_SIMPLEX, 0.3f, mHistAxisColor);
+  putText(
+    HistImage,
+    "0",
+    Point(mHistImageBorder - 3, mHistImageBorder + mHistImageHeight + 10),
+    FONT_HERSHEY_SIMPLEX,
+    0.3f,
+    mHistAxisColor);
 
   // Create text to display number of histogram bins
   stringstream mBinCountSS;
-  mBinCountSS << (BinCount-1);
+  mBinCountSS << (BinCount - 1);
 
   // Label last bin
   putText(
     HistImage,
     mBinCountSS.str().c_str(),
-    Point(mHistImageBorder + 3*BinCount - 10, mHistImageBorder + mHistImageHeight + 10),
-    FONT_HERSHEY_SIMPLEX, 0.3f, mHistAxisColor);
+    Point(
+      mHistImageBorder + mSpread * BinCount - 10,
+      mHistImageBorder + mHistImageHeight + 10),
+    FONT_HERSHEY_SIMPLEX,
+    0.3f,
+    mHistAxisColor);
 
 }
 
@@ -455,23 +587,24 @@ void CHistLib::NormalizeClipImageBGR(
   unsigned max = mBinCount-1;
   unsigned min = 0;
 
-  for (int i = 0; i < ImageHSV.rows*ImageHSV.cols; i++)
+  for (int i = 0; i < ImageHSV.rows*ImageHSV.cols; ++i)
   {
     bins[data[3*i+2]]++;
   }
 
   // Maximum number of pixels to remove from the histogram
   // This is calculated by taking a percentage of the total number of pixels
-  const double clipFraction = clipPercent/100.0f;
-  unsigned pixelsToClip = cvRound(clipFraction*(double)(ImageHSV.rows*ImageHSV.cols));
-  unsigned pixelsToClipHalf = cvRound((double)pixelsToClip/2);
+  const double clipFraction = clipPercent / 100.0f;
+  unsigned pixelsToClip = cvRound(
+    clipFraction * (double) (ImageHSV.rows * ImageHSV.cols));
+  unsigned pixelsToClipHalf = cvRound((double) pixelsToClip / 2);
   unsigned binSum = 0;
 
   // Find the lower pixel bound
   if (bins[0] < pixelsToClipHalf)
   {
     binSum = bins[0];
-    for (unsigned i = 1; i < 255; i++)
+    for (unsigned i = 1; i < 255; ++i)
     {
       binSum = binSum + bins[i];
       if (binSum > pixelsToClipHalf)
@@ -497,7 +630,7 @@ void CHistLib::NormalizeClipImageBGR(
     }
   }
 
-  for ( int i = 0; i < ImageHSV.rows*ImageHSV.cols; i++)
+  for ( int i = 0; i < ImageHSV.rows*ImageHSV.cols; ++i)
   {
     dataNorm[3*i]   = data[3*i];// Hue
     dataNorm[3*i+1] = data[3*i+1];//Saturation
@@ -542,13 +675,13 @@ void CHistLib::NormalizeImageBGR(const Mat& ImageBGR, Mat& ImageBGRNorm)
   // Find min/max from the value channel
   unsigned char min = 255;
   unsigned char max = 0;
-  for ( int i = 0; i < ImageHSV.rows*ImageHSV.cols; i++)
+  for ( int i = 0; i < ImageHSV.rows*ImageHSV.cols; ++i)
   {
     if( data[3*i+2] > max) max = data[3*i+2];
     if( data[3*i+2] < min) min = data[3*i+2];
   }
 
-  for ( int i = 0; i < ImageHSV.rows*ImageHSV.cols; i++)
+  for ( int i = 0; i < ImageHSV.rows*ImageHSV.cols; ++i)
   {
     dataNorm[3*i]   = data[3*i];// Hue
     dataNorm[3*i+1] = data[3*i+1];//Saturation

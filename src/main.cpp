@@ -1,47 +1,59 @@
-//=================================================================================================
+//=============================================================================
 // Copyright (c) 2012, Paul Filitchkin
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without modification, are permitted
-// provided that the following conditions are met:
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
 //
-//    * Redistributions of source code must retain the above copyright notice, this list of
-//      conditions and the following disclaimer.
+//    * Redistributions of source code must retain the above copyright notice,
+//     this list of conditions and the following disclaimer.
 //
-//    * Redistributions in binary form must reproduce the above copyright notice, this list of
-//      conditions and the following disclaimer in the documentation and/or other materials
-//      provided with the distribution.
+//    * Redistributions in binary form must reproduce the above copyright
+//      notice, this list of conditions and the following disclaimer in
+//      the documentation and/or other materials provided with the
+//      distribution.
 //
-//    * Neither the name of the organization nor the names of its contributors may be used
-//      to endorse or promote products derived from this software without specific prior written
-//      permission.
+//    * Neither the name of the organization nor the names of its contributors
+//      may be used to endorse or promote products derived from this software
+//      without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
-// OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
-// AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-// SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
-//=================================================================================================
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//=============================================================================
 
 #include "histLib.h"
 #include <highgui.h>
 #include <iostream>
 
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 using namespace std;
 using namespace cv;
 
-int main(void)
+//-----------------------------------------------------------------------------
+// Description:
+//  Draws an ascending ramp such that each histogram bar is separated by
+//  one pixel.  The bars are colored red, the background is a light shade
+//  of grey and the axis is black.  The height is chosen to fit the height
+//  of the bars (if the height is too small the bars will simply get cropped).
+//-----------------------------------------------------------------------------
+void DrawManuallyHistogram()
 {
   CHistLib Histogram;
   Histogram.SetPlotColor(Scalar(0x00, 0x00, 0xff));
   Histogram.SetAxisColor(Scalar(0x00, 0x00, 0x00));
-  Histogram.SetBackgroundColor(Scalar(0xff, 0xff, 0xff));
-
-  Histogram.SetHistImageHeight(100);
+  Histogram.SetBackgroundColor(Scalar(0xee, 0xee, 0xee));
+  Histogram.SetHistImageHeight(133);
+  Histogram.SetDrawSpreadOut(true);
 
   // Create a row vector for histogram values
   Mat Hist = Mat(128, 1, CV_32S);
@@ -55,156 +67,155 @@ int main(void)
   Mat HistImage;
   Histogram.DrawHistogram(Hist, HistImage);
 
-  if (imwrite("images/testRampA.hist.png", HistImage))
+  string ImageName("ramp.hist.png");
+
+  if (imwrite(ImageName, HistImage))
   {
-    cout << "Manually draw histogram (C++ style)... saved testRampA.hist.png\n";
+    cout << "Manually drawing histogram... saved " << ImageName << endl;
   }
+}
+
+//-----------------------------------------------------------------------------
+// Description:
+//-----------------------------------------------------------------------------
+void DrawSimpleValueHistogram()
+{
+  CHistLib Histogram;
+
+  // Open the image
+  Mat ImageBGR = imread("images/bars.png");
+  assert(!ImageBGR.empty());
+
+  // Generate color histogram for the current image
+  Mat HistImageGray;
+  Histogram.DrawHistogramValue(ImageBGR, HistImageGray);
+
+  // Save the histogram image
+  string ImageName("bars.value.hist.png");
+
+  if (imwrite(ImageName, HistImageGray))
+  {
+    cout << "Drawing value histogram... created " << ImageName << endl;
+  }
+}
+
+//-----------------------------------------------------------------------------
+// Description:
+//
+// Note:
+//  At first the large spike at zero might seem unintuitive, but it's there
+//  because each channel has many pixels with the absence of color (0 values).
+//  For example, if you had just an image that was just blue, the red and green
+//  channels would have lots of zeros and you would see a similar spike in at
+//  zero is this type of histogram plot.
+//-----------------------------------------------------------------------------
+void DrawSimpleBgrHistogram()
+{
+  CHistLib Histogram;
+
+  // Open the image
+  Mat ImageBGR = imread("images/bars.png");
+  assert(!ImageBGR.empty());
+
+  // Generate histogram for the current image
+  Mat HistImageBGR;
+  Histogram.DrawHistogramBGR(ImageBGR, HistImageBGR);
+
+  // Save the histogram image
+  string ImageName("bars.rgb.hist.png");
+
+  if (imwrite(ImageName, HistImageBGR))
+  {
+    cout << "Drawing BGR histogram... create " << ImageName << endl;
+  }
+}
+
+//-----------------------------------------------------------------------------
+// Description:
+//-----------------------------------------------------------------------------
+void DrawPhotoValueHistogram()
+{
+  CHistLib Histogram;
+
+  // Open the image
+  Mat ImageBGR = imread("images/sunset.jpg");
+  assert(!ImageBGR.empty());
+
+  // Generate color histogram for the current image
+  Mat HistImageGray;
+  Histogram.DrawHistogramValue(ImageBGR, HistImageGray);
+
+  // Save the histogram image
+  string ImageName("sunset.gray.hist.png");
+
+  if (imwrite(ImageName, HistImageGray))
+  {
+    cout << "Drawing value histogram... created " << ImageName << endl;
+  }
+}
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+void DrawPhotoBgrHistogram()
+{
+  CHistLib Histogram;
+  // Open the image
+  Mat ImageBGR = imread("images/sunset.jpg");
+  assert(!ImageBGR.empty());
+
+  Mat HistImageBGR;
+  Histogram.DrawHistogramBGR(ImageBGR, HistImageBGR);
+
+  // Save the histogram image
+  string ImageName("sunset.bgr.hist.png");
+
+  if (imwrite(ImageName, HistImageBGR))
+  {
+    cout << "Drawing BGR histogram... created " << ImageName << endl;
+  }
+}
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+void LevelShift()
+{
+  CHistLib Histogram;
+
+  // Open the image
+  Mat ImageBGR = imread("images/bars.png");
+  assert(!ImageBGR.empty());
+
+  // Generate color histogram for the current image
+  Mat HistImageGray;
+  Histogram.DrawHistogramValue(ImageBGR, HistImageGray);
+
+  // Save the histogram image
+  string ImageName("bars.value.hist.png");
+
+  if (imwrite(ImageName, HistImageGray))
+  {
+    cout << "Drawing value histogram... created " << ImageName << endl;
+  }
+}
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+int main(void)
+{
+  // Sample histogram plot using a user-defined histogram
+  DrawManuallyHistogram();
+
+  // Sample histogram plots using the image bars.png
+  DrawSimpleValueHistogram();
+  DrawSimpleBgrHistogram();
+
+  // Sample histogram plots using the image sunset.jpg
+  DrawPhotoValueHistogram();
+  DrawPhotoBgrHistogram();
+
+  LevelShift();
 
 #if 0
-  // ============================Manually draw histogram (C++ style)===============================
-  Mat HistImage = Mat(2*HIST_EDGE + HIST_HEIGHT, 2*HIST_EDGE + 3*HIST_BINS, CV_8UC3, Scalar(0));
-
-  // Draw background and labels
-  DrawHistBar(HistImage);
-
-  // Create a row vector for histogram values
-  Mat Hist = Mat(256, 1, CV_32S);
-
-  // The ith bin gets i
-  for (int i = 0; i < Hist.rows; i++)
-  {
-    Hist.at<int>(i,0) = i;
-  }
-
-  //Draw it!
-  DrawHistogram(Hist, HistImage);
-
-  if (imwrite("images/testRampA.hist.png", HistImage))
-  {
-    cout << "Manually draw histogram (C++ style)... saved testRampA.hist.png\n";
-  }
-
-  // =============================Manually draw histogram (C style)================================
-  CvSize HistSize = cvSize(2*HIST_EDGE + 3*HIST_BINS, 2*HIST_EDGE + HIST_HEIGHT);
-  IplImage *HistMImg = cvCreateImage(HistSize , IPL_DEPTH_8U, 3);
-
-  // Draw the histogram background and labels
-  DrawHistBar(HistMImg);
-
-  // Create a row vector for histogram values
-  CvMat* Histo = cvCreateMat(256, 1, CV_32S);
-
-  // The ith bin gets 255 - i
-  for (int i = 0; i < Histo->rows; i++)
-  {
-    Histo->data.i[i] = 255 - i;
-  }
-
-  //Draw it!
-  DrawHistogram(Histo, HistMImg);
-
-  if (cvSaveImage("images/testRampB.hist.png", HistMImg))
-  {
-    cout << "Manually draw histogram (C style)... saved testRampB.hist.png\n";
-  }
-
-  // Clean up
-  cvReleaseImage(&HistMImg);
-  cvReleaseMat(&Histo);
-
-  //===========================Value (grayscale) histogram (C++ style)=============================
-  // Open the image
-  Mat ImageV = imread("images/fiveShades.png");
-
-  // Generate color histogram for the current image
-  Mat HistImageV = Mat(2*HIST_EDGE + HIST_HEIGHT, 2*HIST_EDGE + 3*HIST_BINS, CV_8UC3, Scalar(0));
-
-  // Draw the histogram background and labels
-  DrawHistBar(HistImageV);
-
-  // Draw the histogram levels
-  DrawHistogramGray(ImageV, HistImageV);
-
-  // Save the histogram image
-  if (imwrite("images/fiveShadesA.hist.png", HistImageV))
-  {
-    cout << "Value histogram (C++ style)... saved fiveShadesA.hist.png\n";
-  }
-
-  //============================Value (grayscale) histogram (C style)==============================
-  // Open the image
-  IplImage *ImgV = cvLoadImage("images/fiveShades.png");
-
-  // If we opened a valid image
-  if (ImgV)
-  {
-    // Generate color histogram for the current image
-    CvSize HistSize = cvSize(2*HIST_EDGE + 3*HIST_BINS, 2*HIST_EDGE + HIST_HEIGHT);
-    IplImage *HistImgV = cvCreateImage(HistSize , IPL_DEPTH_8U, 3);
-
-    // Draw the histogram background and labels
-    DrawHistBar(HistImgV);
-
-    // Draw the histogram levels
-    DrawHistogramGray(ImgV, HistImgV);
-
-    // Save the histogram image
-    if (cvSaveImage("images/fiveShadesB.hist.png", HistImgV))
-    {
-      cout << "Value histogram (C style)... saved fiveShadesB.hist.png\n";
-    }
-
-    // Clean up
-    cvReleaseImage(&HistImgV);
-    cvReleaseImage(&ImgV);
-  }
-
-  //================================BGR histogram (C++ style)======================================
-  // Open the image
-  Mat ImageBGR = imread("images/rgb.png");
-
-  // Generate color histogram for the current image
-  Mat HistImageBGR = Mat(2*HIST_EDGE + HIST_HEIGHT, 2*HIST_EDGE + 3*HIST_BINS, CV_8UC3, Scalar(0));
-
-  // Draw the histogram background and labels
-  DrawHistBar(HistImageBGR);
-
-  // Draw the histogram levels
-  DrawHistogramBGR(ImageBGR, HistImageBGR);
-
-  // Save the histogram image
-  if (imwrite("images/rgbA.hist.png", HistImageBGR))
-  {
-    cout << "BGR histogram (C++ style)... saved rgbA.hist.png\n";
-  }
-
-  //=================================BGR histogram (C style)=======================================
-  // Open the image
-  IplImage *ImgBGR = cvLoadImage("images/rgb.png");
-
-  // If we opened a valid image
-  if (ImgBGR)
-  {
-    // Generate color histogram for the current image
-    CvSize HistSize = cvSize(2*HIST_EDGE + 3*HIST_BINS, 2*HIST_EDGE + HIST_HEIGHT);
-    IplImage *HistImgBGR = cvCreateImage(HistSize, IPL_DEPTH_8U, 3);
-
-    // Draw the histogram background and labels
-    DrawHistBar(HistImgBGR);
-
-    // Draw the histogram levels
-    DrawHistogramBGR(ImgBGR, HistImgBGR);
-
-    // Save the histogram image
-    if (cvSaveImage("images/rgbB.hist.png", HistImgBGR))
-    {
-      cout << "BGR histogram (C style)... saved rgbB.hist.png\n";
-    }
-
-    // Clean up
-    cvReleaseImage(&HistImgBGR);
-    cvReleaseImage(&ImgBGR);
-  }
 
   //=================================Auto levels (C++ style)=======================================
   // Open the image
@@ -238,51 +249,7 @@ int main(void)
     cout << "Auto levels (C++ style)... saved fiveShadesLowContrastNormA.png\n";
   }
 
-  //=================================Auto levels (C style)=======================================
-  // Open the image
-  IplImage *ImgLowContrastBGR = cvLoadImage("images/fiveShadesLowContrast.png");
-
-  // If we opened a valid image
-  if (ImgLowContrastBGR)
-  {
-    IplImage *ImgLowContrastBGRNorm = cvCreateImage(cvGetSize(ImgLowContrastBGR), IPL_DEPTH_8U, 3);
-    NormalizeClipImageBGR(ImgLowContrastBGR, ImgLowContrastBGRNorm);
-
-    // Generate color histogram for the current image
-    CvSize HistSize = cvSize(2*HIST_EDGE + 3*HIST_BINS, 2*HIST_EDGE + HIST_HEIGHT);
-    IplImage *HistImgBGR     = cvCreateImage(HistSize, IPL_DEPTH_8U, 3);
-    IplImage *HistImgBGRNorm = cvCreateImage(HistSize, IPL_DEPTH_8U, 3);
-
-    // Draw the histogram background and labels
-    DrawHistBar(HistImgBGR);
-    DrawHistBar(HistImgBGRNorm);
-
-    // Draw the histogram levels
-    DrawHistogramBGR(ImgLowContrastBGR, HistImgBGR);
-    DrawHistogramBGR(ImgLowContrastBGRNorm, HistImgBGRNorm);
-
-    // Save the histogram image
-    if (cvSaveImage("images/fiveShadesLowContrastB.hist.png", HistImgBGR))
-    {
-      cout << "Auto levels (C style)... saved fiveShadesLowContrastB.hist.png\n";
-    }
-    if (cvSaveImage("images/fiveShadesLowContrastNormB.hist.png", HistImgBGRNorm))
-    {
-      cout << "Auto levels (C style)... saved fiveShadesLowContrastNormB.hist.png\n";
-    }
-    if (cvSaveImage("images/fiveShadesLowContrastNormB.png", ImgLowContrastBGRNorm))
-    {
-      cout << "Auto levels (C style)... saved fiveShadesLowContrastNormB.png\n";
-    }
-
-    // Clean up
-    cvReleaseImage(&HistImgBGR);
-    cvReleaseImage(&HistImgBGRNorm);
-    cvReleaseImage(&ImgLowContrastBGR);
-    cvReleaseImage(&ImgLowContrastBGRNorm);
-  }
-
-    //================================= Photo BGR histogram =======================================
+  //================================= Photo BGR histogram =======================================
   // Open the image
   Mat PhotoBGR = imread("images/sunset.jpg");
 
@@ -301,10 +268,6 @@ int main(void)
     cout << "Photo BGR histogram... saved sunset.hist.png\n";
   }
 
-  // Leave the prompt up so user can view messages (for Windows)
-  cout << "Enter some text to exit\n";
-  int someInput;
-  cin >> someInput;
 #endif
   return 0;
 }

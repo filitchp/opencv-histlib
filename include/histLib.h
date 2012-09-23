@@ -51,6 +51,7 @@ class CHistLib
     void SetPlotColor(cv::Scalar Color);
     void SetAxisColor(cv::Scalar Color);
     void SetBackgroundColor(cv::Scalar Color);
+    void SetDrawSpreadOut(bool DrawSpreadOut);
 
     // Getters
     unsigned GetHistImageHeight() const;
@@ -58,10 +59,11 @@ class CHistLib
     cv::Scalar GetPlotColor() const;
     cv::Scalar GetAxisColor() const;
     cv::Scalar GetBackgroundColor() const;
+    bool GetDrawSpreadOut() const;
 
     // Histogram functions
     void DrawHistogramBGR(const cv::Mat& ImageBGR, cv::Mat& ImageHist);
-    void DrawHistogramGray(const cv::Mat& ImageBGR, cv::Mat& ImageHist);
+    void DrawHistogramValue(const cv::Mat& ImageBGR, cv::Mat& ImageHist);
 
     void DrawHistogram(
       const cv::Mat& Hist,
@@ -82,28 +84,35 @@ class CHistLib
 
   private:
     // Helper functions
+    void DrawHistBins(
+      const cv::Mat& Hist,
+      cv::Mat& HistImage,
+      const cv::Scalar& Color);
+
     void DrawHistBin(
       cv::Mat& HistLayer,
       int value,
       unsigned x,
-      const cv::Scalar& Color = HIST_LIB_COLOR_WHITE);
+      const cv::Scalar& Color);
 
     void DrawHistBin(
       cv::Mat& HistLayer,
       float value,
       unsigned x,
-      const cv::Scalar& Color = HIST_LIB_COLOR_WHITE);
+      const cv::Scalar& Color);
 
     void DrawHistBin(
       cv::Mat& HistLayer,
       double value,
       unsigned x,
-      const cv::Scalar& Color = HIST_LIB_COLOR_WHITE);
+      const cv::Scalar& Color);
 
     unsigned mHistImageHeight;
     unsigned mHistImageBorder;
     unsigned mBinCount;
+    unsigned mSpread;
     bool mDrawXAxis;
+    bool mDrawSpreadOut;
     cv::Scalar mHistPlotColor;
     cv::Scalar mHistAxisColor;
     cv::Scalar mHistBackgroundColor;
