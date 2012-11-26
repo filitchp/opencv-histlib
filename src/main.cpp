@@ -31,8 +31,9 @@
 //=============================================================================
 
 #include "histLib.h"
-#include <highgui.h>
 #include <iostream>
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -41,14 +42,18 @@ using namespace cv;
 
 //-----------------------------------------------------------------------------
 // Description:
-//  Draws an ascending ramp such that each histogram bar is separated by
-//  one pixel.  The bars are colored red, the background is a light shade
-//  of grey and the axis is black.  The height is chosen to fit the height
-//  of the bars (if the height is too small the bars will simply get cropped).
+//  This examples draws an ascending ramp such that each histogram bar is
+//  separated by one pixel.  The bars are colored red, the background is a
+//  light shade of grey and the axis is black.  The height is chosen to fit the
+//  height of the bars (if the height is too small the bars will simply get
+//  cropped).
 //-----------------------------------------------------------------------------
 void DrawManuallyHistogram()
 {
+  // Declare histlib instance
   CHistLib Histogram;
+
+  // Customize the display properties
   Histogram.SetPlotColor(Scalar(0x00, 0x00, 0xff));
   Histogram.SetAxisColor(Scalar(0x00, 0x00, 0x00));
   Histogram.SetBackgroundColor(Scalar(0xee, 0xee, 0xee));
@@ -71,12 +76,13 @@ void DrawManuallyHistogram()
 
   if (imwrite(ImageName, HistImage))
   {
-    cout << "Manually drawing histogram... saved " << ImageName << endl;
+    cout << "Created single channel histogram: " << ImageName << endl;
   }
 }
 
 //-----------------------------------------------------------------------------
 // Description:
+//   This example draws a value histogram from a test image.
 //-----------------------------------------------------------------------------
 void DrawSimpleValueHistogram()
 {
@@ -88,26 +94,26 @@ void DrawSimpleValueHistogram()
 
   // Generate color histogram for the current image
   Mat HistImageGray;
-  Histogram.DrawHistogramValue(ImageBGR, HistImageGray);
+  Histogram.ComputeAndDrawHistogramValue(ImageBGR, HistImageGray);
 
   // Save the histogram image
   string ImageName("bars.value.hist.png");
 
   if (imwrite(ImageName, HistImageGray))
   {
-    cout << "Drawing value histogram... created " << ImageName << endl;
+    cout << "Created value histogram: " << ImageName << endl;
   }
 }
 
 //-----------------------------------------------------------------------------
 // Description:
-//
+//   This example draws a color histogram from a test image.
 // Note:
 //  At first the large spike at zero might seem unintuitive, but it's there
 //  because each channel has many pixels with the absence of color (0 values).
-//  For example, if you had just an image that was just blue, the red and green
+//  For example, if you had an image that was just blue, the red and green
 //  channels would have lots of zeros and you would see a similar spike in at
-//  zero is this type of histogram plot.
+//  zero in this type of histogram plot.
 //-----------------------------------------------------------------------------
 void DrawSimpleBgrHistogram()
 {
@@ -119,19 +125,21 @@ void DrawSimpleBgrHistogram()
 
   // Generate histogram for the current image
   Mat HistImageBGR;
-  Histogram.DrawHistogramBGR(ImageBGR, HistImageBGR);
+  Histogram.ComputeAndDrawHistogramBGR(ImageBGR, HistImageBGR);
 
   // Save the histogram image
   string ImageName("bars.rgb.hist.png");
 
   if (imwrite(ImageName, HistImageBGR))
   {
-    cout << "Drawing BGR histogram... create " << ImageName << endl;
+    cout << "Created BGR histogram: " << ImageName << endl;
   }
 }
 
 //-----------------------------------------------------------------------------
 // Description:
+//   This example draws a value histogram from a photo.  It is broken up into
+//   two steps to show how get access to the histogram vector
 //-----------------------------------------------------------------------------
 void DrawPhotoValueHistogram()
 {
@@ -141,20 +149,26 @@ void DrawPhotoValueHistogram()
   Mat ImageBGR = imread("images/sunset.jpg");
   assert(!ImageBGR.empty());
 
-  // Generate color histogram for the current image
+  // Generate value channel histogram for the current image
   Mat HistImageGray;
-  Histogram.DrawHistogramValue(ImageBGR, HistImageGray);
+
+  MatND Hist;
+  Histogram.ComputeHistogramValue(ImageBGR, Hist);
+  Histogram.DrawHistogramValue(Hist, HistImageGray);
 
   // Save the histogram image
   string ImageName("sunset.gray.hist.png");
 
   if (imwrite(ImageName, HistImageGray))
   {
-    cout << "Drawing value histogram... created " << ImageName << endl;
+    cout << "Created value histogram: " << ImageName << endl;
   }
 }
 
 //-----------------------------------------------------------------------------
+// Description:
+//   This example draws a color histogram from a photo. It is broken up into
+//   two steps to show how get access to the histogram vectors
 //-----------------------------------------------------------------------------
 void DrawPhotoBgrHistogram()
 {
@@ -163,38 +177,153 @@ void DrawPhotoBgrHistogram()
   Mat ImageBGR = imread("images/sunset.jpg");
   assert(!ImageBGR.empty());
 
+  // Generate a color channel (BGR) histogram
   Mat HistImageBGR;
-  Histogram.DrawHistogramBGR(ImageBGR, HistImageBGR);
+
+  MatND HistB;
+  MatND HistG;
+  MatND HistR;
+  Histogram.ComputeHistogramBGR(ImageBGR, HistB, HistG, HistR);
+  Histogram.DrawHistogramBGR(HistB, HistG, HistR, HistImageBGR);
 
   // Save the histogram image
   string ImageName("sunset.bgr.hist.png");
 
   if (imwrite(ImageName, HistImageBGR))
   {
-    cout << "Drawing BGR histogram... created " << ImageName << endl;
+    cout << "Created BGR histogram: " << ImageName << endl;
   }
 }
 
 //-----------------------------------------------------------------------------
+// Description:
+//   This example shows how to scale the value channel of an image.  This is
+//   a potential way to implement an auto-contrast/auto-levels operation
 //-----------------------------------------------------------------------------
-void LevelShift()
+void LevelScalingLowContrast()
 {
   CHistLib Histogram;
 
   // Open the image
-  Mat ImageBGR = imread("images/bars.png");
-  assert(!ImageBGR.empty());
+  Mat ImageLowContrast = imread("images/fiveShadesLowContrast.png");
+
+  assert(!ImageLowContrast.empty());
+
+  Mat ImageOriginalNorm;
+  Mat ImageLowContrastNorm;
 
   // Generate color histogram for the current image
   Mat HistImageGray;
-  Histogram.DrawHistogramValue(ImageBGR, HistImageGray);
+
+  Histogram.NormalizeImageBGR(ImageLowContrast, ImageLowContrastNorm);
+
+  Mat HistImageLowContrast;
+  Mat HistImageLowContrastNorm;
+
+  Histogram.ComputeAndDrawHistogramValue(ImageLowContrast, HistImageLowContrast);
+  Histogram.ComputeAndDrawHistogramValue(ImageLowContrastNorm, HistImageLowContrastNorm);
+
+  // Save the histogram images
+  string HistImageLowContrastName("fiveShadesLowContrast.value.hist.png");
+  string HistImageLowContrastNormName("fiveShadesLowContrastNorm.value.hist.png");
+  string ImageLowContrastNormName("fiveShadesLowContrastNorm.png");
+
+  if (imwrite(HistImageLowContrastName, HistImageLowContrast))
+  {
+    cout << "Created value histogram: " << HistImageLowContrastName << endl;
+  }
+
+  if (imwrite(HistImageLowContrastNormName, HistImageLowContrastNorm))
+  {
+    cout << "Created value histogram: " << HistImageLowContrastNormName << endl;
+  }
+
+  if (imwrite(ImageLowContrastNormName, ImageLowContrastNorm))
+  {
+    cout << "Created normalized image: " << ImageLowContrastNormName << endl;
+  }
+}
+
+//-----------------------------------------------------------------------------
+// Description:
+//   This example shows how to scale the value channel of an image.  This is
+//   a potential way to implement an auto-contrast/auto-levels operation
+//-----------------------------------------------------------------------------
+void LevelScalingWithClipping()
+{
+  CHistLib Histogram;
+
+  // Open the image
+  Mat ImageLowContrast = imread("images/fiveShadesLowContrast.png");
+
+  assert(!ImageLowContrast.empty());
+
+  Mat ImageLowContrastClipped;
+
+  // Perform the normalized clipping procedure
+  double clipPercent = 50;
+  Histogram.NormalizeClipImageBGR(ImageLowContrast, ImageLowContrastClipped, clipPercent);
+
+  Mat HistImageLowContrastClipped;
+  Histogram.ComputeAndDrawHistogramValue(ImageLowContrastClipped, HistImageLowContrastClipped);
+
+  // Save the modified image
+  string ImageLowContrastClippedName("fiveShadesLowContrastClipped.value.png");
+
+  if (imwrite(ImageLowContrastClippedName, ImageLowContrastClipped))
+  {
+    cout << "Created clipped image: " << ImageLowContrastClippedName << endl;
+  }
 
   // Save the histogram image
-  string ImageName("bars.value.hist.png");
+  string HistImageLowContrastClippedName("fiveShadesLowContrastClipped.value.hist.png");
 
-  if (imwrite(ImageName, HistImageGray))
+  if (imwrite(HistImageLowContrastClippedName, HistImageLowContrastClipped))
   {
-    cout << "Drawing value histogram... created " << ImageName << endl;
+    cout << "Created value histogram: " << HistImageLowContrastClippedName << endl;
+  }
+}
+
+//-----------------------------------------------------------------------------
+// Description:
+//   This example shows how to scale the value channel of an image.  This is
+//   a potential way to implement an auto-contrast/auto-levels operation
+//-----------------------------------------------------------------------------
+void LevelScalingNoEffect()
+{
+  CHistLib Histogram;
+
+  // Open the image
+  Mat ImageOriginal = imread("images/fiveShades.png");
+
+  assert(!ImageOriginal.empty());
+
+  Mat ImageOriginalNorm;
+
+  // Generate color histogram for the current image
+  Mat HistImageGray;
+
+  // Used to verify that this operation does not modify the original image
+  Histogram.NormalizeImageBGR(ImageOriginal, ImageOriginalNorm);
+
+  Mat HistImageOriginal;
+  Mat HistImageOriginalNorm;
+
+  Histogram.ComputeAndDrawHistogramValue(ImageOriginal, HistImageOriginal);
+  Histogram.ComputeAndDrawHistogramValue(ImageOriginalNorm, HistImageOriginalNorm);
+
+  // Save the histogram images
+  string HistImageOriginalName("fiveShades.value.hist.png");
+  string HistImageOriginalNormName("fiveShadesNorm.value.hist.png");
+
+  if (imwrite(HistImageOriginalName, HistImageOriginal))
+  {
+    cout << "Created value histogram: " << HistImageOriginalName << endl;
+  }
+
+  if (imwrite(HistImageOriginalNormName, HistImageOriginalNorm))
+  {
+    cout << "Created value histogram: " << HistImageOriginalNormName << endl;
   }
 }
 
@@ -213,61 +342,19 @@ int main(void)
   DrawPhotoValueHistogram();
   DrawPhotoBgrHistogram();
 
-  LevelShift();
+  // The examples below demonstrate the level scaling
+  // (auto-contrast/auto-levels) functionality
 
-#if 0
+  // Demonstrates level scaling on a low contrast image
+  LevelScalingLowContrast();
 
-  //=================================Auto levels (C++ style)=======================================
-  // Open the image
-  Mat ImgLowContBGR     = imread("images/fiveShadesLowContrast.png");
-  Mat ImgLowContBGRNorm = Mat(ImgLowContBGR.size(), CV_32F);
+  // Demonstrates level scaling functionality where the value channel is
+  // scaled to the point of clipping
+  LevelScalingWithClipping();
 
-  NormalizeImageBGR(ImgLowContBGR, ImgLowContBGRNorm);
+  // Verify that level scaling does not change an image that is already
+  // at full contrast
+  LevelScalingNoEffect();
 
-  // Generate color histogram for the current image
-  Mat HistLowContBGR     = Mat(HIST_ROWS, HIST_COLS, CV_8UC3, Scalar(0,0,0));
-  Mat HistLowContBGRNorm = Mat(HIST_ROWS, HIST_COLS, CV_8UC3, Scalar(0,0,0));
-
-  // Draw the histogram background and labels
-  DrawHistBar(HistLowContBGR);
-  DrawHistBar(HistLowContBGRNorm);
-
-  // Draw the histogram levels
-  DrawHistogramBGR(ImgLowContBGR, HistLowContBGR);
-  DrawHistogramBGR(ImgLowContBGRNorm, HistLowContBGRNorm);
-
-  if (imwrite("images/fiveShadesLowContrastA.hist.png", HistLowContBGR))
-  {
-    cout << "Auto levels (C++ style)... saved fiveShadesLowContrastA.hist.png\n";
-  }
-  if (imwrite("images/fiveShadesLowContrastNormA.hist.png", HistLowContBGRNorm))
-  {
-    cout << "Auto levels (C++ style)... saved fiveShadesLowContrastNormA.hist.png\n";
-  }
-  if (imwrite("images/fiveShadesLowContrastNormA.png", ImgLowContBGRNorm))
-  {
-    cout << "Auto levels (C++ style)... saved fiveShadesLowContrastNormA.png\n";
-  }
-
-  //================================= Photo BGR histogram =======================================
-  // Open the image
-  Mat PhotoBGR = imread("images/sunset.jpg");
-
-  // Generate color histogram for the current image
-  Mat HistPhotoBGR = Mat(2*HIST_EDGE + HIST_HEIGHT, 2*HIST_EDGE + 3*HIST_BINS, CV_8UC3, Scalar(0));
-
-  // Draw the histogram background and labels
-  DrawHistBar(HistPhotoBGR);
-
-  // Draw the histogram levels
-  DrawHistogramBGR(PhotoBGR, HistPhotoBGR);
-
-  // Save the histogram image
-  if (imwrite("images/sunset.hist.png", HistPhotoBGR))
-  {
-    cout << "Photo BGR histogram... saved sunset.hist.png\n";
-  }
-
-#endif
   return 0;
 }
