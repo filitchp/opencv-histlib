@@ -4,18 +4,19 @@ HistLib is a C++ histogram visualization and manipulation library built with [[h
 
 **Please see [[https://github.com/filitchp/opencv-histlib/wiki/Samples|Samples]] on how to use this library.**
 
-| {{https://raw.github.com/wiki/filitchp/opencv-histlib/img/sunset.jpg | Input image}} | {{https://raw.github.com/wiki/filitchp/opencv-histlib/img/sunset.hist.png | Corresponding RGB histogram}} |
+| {{https://raw.github.com/wiki/filitchp/opencv-histlib/img/sunset.jpg|Input image}} | {{https://raw.github.com/wiki/filitchp/opencv-histlib/img/sunset.hist.png|Corresponding RGB histogram}} |
 | Input | Histogram |
 
-----
-**Changes for version 0.3**
+=== Changes
+
+**Version 0.3**
  * Switched to the CMake build system
  * Refactored functions into an object oriented library
  * Cleaner sample code
  * Extensive commenting
 ----
 
-=== install
+=== Install
 
 Checkout or extract the source into `~/code/opencv-histlib`
 
