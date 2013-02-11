@@ -1,6 +1,8 @@
-HistLib is a C++ histogram visualization and manipulation library built with [[OpenCV|http://opencv.willowgarage.com/wiki/]]. This library provides the ability to create custom histograms, generate histograms from grayscale/color images, and apply value channel normalization using a set of simple functions. 
+== OpenCV-histlib
 
-**Please see [[Samples|https://github.com/filitchp/opencv-histlib/wiki/Samples]] on how to use this library.**
+HistLib is a C++ histogram visualization and manipulation library built with [[http://opencv.willowgarage.com/wiki/|OpenCV]]. This library provides the ability to create custom histograms, generate histograms from grayscale/color images, and apply value channel normalization using a set of simple functions. 
+
+**Please see [[https://github.com/filitchp/opencv-histlib/wiki/Samples|Samples]] on how to use this library.**
 
 | {{https://raw.github.com/wiki/filitchp/opencv-histlib/img/sunset.jpg | Input image}} | {{https://raw.github.com/wiki/filitchp/opencv-histlib/img/sunset.hist.png | Corresponding RGB histogram}} |
 | Input | Histogram |
@@ -13,11 +15,11 @@ HistLib is a C++ histogram visualization and manipulation library built with [[O
  * Extensive commenting
 ----
 
-**Setup Instructions**
+=== install
 
 Checkout or extract the source into `~/code/opencv-histlib`
 
-```bash
+{{{
 # Make a new build directory for the project
 mkdir ~/code/build/opencv-histlib
 cd ~/code/build/opencv-histlib
@@ -31,10 +33,10 @@ cp -Rf ~/code/opencv-histlib/images ./
 # Build and run the sample code
 make
 ./sample
-```
+}}}
 
-The output from `sample` should look like this:
-```bash
+The output from **sample** should look like this:
+{{{
 Created single channel histogram: ramp.hist.png
 Created value histogram: bars.value.hist.png
 Created BGR histogram: bars.rgb.hist.png
@@ -47,4 +49,4 @@ Created clipped image: fiveShadesLowContrastClipped.value.png
 Created value histogram: fiveShadesLowContrastClipped.value.hist.png
 Created value histogram: fiveShades.value.hist.png
 Created value histogram: fiveShadesNorm.value.hist.png
-```
+}}}
