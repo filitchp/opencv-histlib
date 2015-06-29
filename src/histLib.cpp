@@ -31,7 +31,7 @@
 //=============================================================================
 
 #include "histLib.h"
-#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/imgproc.hpp>
 #include <iostream>
 using namespace cv;
 using namespace std;
