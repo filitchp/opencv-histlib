@@ -41,6 +41,22 @@ using namespace std;
 using namespace cv;
 
 //-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+Mat LoadImage(const String filePath)
+{
+  Mat Image = imread(filePath);
+  
+  if (Image.empty())
+  {
+    cout << "Could not open " << filePath << endl;
+    cout << "Aborting... " << endl;
+    exit(-1);
+  }
+  
+  return Image;
+}
+
+//-----------------------------------------------------------------------------
 // Description:
 //  This examples draws an ascending ramp such that each histogram bar is
 //  separated by one pixel.  The bars are colored red, the background is a
@@ -89,8 +105,7 @@ void DrawSimpleValueHistogram()
   CHistLib Histogram;
 
   // Open the image
-  Mat ImageBGR = imread("images/bars.png");
-  assert(!ImageBGR.empty());
+  Mat ImageBGR = LoadImage("images/bars.png");
 
   // Generate color histogram for the current image
   Mat HistImageGray;
@@ -120,8 +135,7 @@ void DrawSimpleBgrHistogram()
   CHistLib Histogram;
 
   // Open the image
-  Mat ImageBGR = imread("images/bars.png");
-  assert(!ImageBGR.empty());
+  Mat ImageBGR = LoadImage("images/bars.png");
 
   // Generate histogram for the current image
   Mat HistImageBGR;
@@ -146,8 +160,7 @@ void DrawPhotoValueHistogram()
   CHistLib Histogram;
 
   // Open the image
-  Mat ImageBGR = imread("images/sunset.jpg");
-  assert(!ImageBGR.empty());
+  Mat ImageBGR = LoadImage("images/sunset.jpg");
 
   // Generate value channel histogram for the current image
   Mat HistImageGray;
@@ -174,8 +187,7 @@ void DrawPhotoBgrHistogram()
 {
   CHistLib Histogram;
   // Open the image
-  Mat ImageBGR = imread("images/sunset.jpg");
-  assert(!ImageBGR.empty());
+  Mat ImageBGR = LoadImage("images/sunset.jpg");
 
   // Generate a color channel (BGR) histogram
   Mat HistImageBGR;
@@ -205,9 +217,7 @@ void LevelScalingLowContrast()
   CHistLib Histogram;
 
   // Open the image
-  Mat ImageLowContrast = imread("images/fiveShadesLowContrast.png");
-
-  assert(!ImageLowContrast.empty());
+  Mat ImageLowContrast = LoadImage("images/fiveShadesLowContrast.png");
 
   Mat ImageOriginalNorm;
   Mat ImageLowContrastNorm;
@@ -254,9 +264,7 @@ void LevelScalingWithClipping()
   CHistLib Histogram;
 
   // Open the image
-  Mat ImageLowContrast = imread("images/fiveShadesLowContrast.png");
-
-  assert(!ImageLowContrast.empty());
+  Mat ImageLowContrast = LoadImage("images/fiveShadesLowContrast.png");
 
   Mat ImageLowContrastClipped;
 
@@ -294,9 +302,7 @@ void LevelScalingNoEffect()
   CHistLib Histogram;
 
   // Open the image
-  Mat ImageOriginal = imread("images/fiveShades.png");
-
-  assert(!ImageOriginal.empty());
+  Mat ImageOriginal = LoadImage("images/fiveShades.png");
 
   Mat ImageOriginalNorm;
 
