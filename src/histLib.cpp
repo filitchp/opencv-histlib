@@ -1,5 +1,5 @@
 //=============================================================================
-// Copyright (c) 2012, Paul Filitchkin
+// Copyright (c) 2015, Paul Filitchkin
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
